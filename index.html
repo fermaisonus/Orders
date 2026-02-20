@@ -423,7 +423,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
 
         const result = await res.json();
 
-        
+        if(result.result === "success"){
             const mainEl = document.querySelector('main');
 
             const paymentHandles = {
