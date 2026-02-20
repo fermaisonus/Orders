@@ -389,13 +389,6 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         return;
     }
 
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2,'0');
-    const day = String(today.getDate()).padStart(2,'0');
-    const rand = Math.floor(Math.random() * 90 + 10);
-    const orderNumber = `F-${month}${day}-${rand}`;
-    data.orderNumber = orderNumber;
-
     // gather form data
     const data = {
         name: document.getElementById('name').value,
@@ -411,6 +404,15 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         feedback: document.getElementById('feedback').value
     };
 
+    // generate order number AFTER data exists
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2,'0');
+    const day = String(today.getDate()).padStart(2,'0');
+    const rand = Math.floor(Math.random() * 90 + 10);
+    const orderNumber = `F-${month}${day}-${rand}`;
+    data.orderNumber = orderNumber;
+
+    // add menu quantities
     menuQtys.forEach((q,i)=>{
         data[menuItemsNames[i]] = parseInt(q.value) || 0;
     });
@@ -463,6 +465,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
                     }
                 });
             });
+        } else {
             alert("error submitting order: " + result.message);
         }
     } catch(err){
