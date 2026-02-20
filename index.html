@@ -389,6 +389,12 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         return;
     }
 
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2,'0');
+    const day = String(today.getDate()).padStart(2,'0');
+    const rand = Math.floor(Math.random() * 90 + 10);
+    const orderNumber = `F-${month}${day}-${rand}`;
+
     // gather form data
     const data = {
         name: document.getElementById('name').value,
@@ -416,14 +422,8 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
 
         const result = await res.json();
 
-        if(result.result === "success") {
+        const orderNumber = data.orderNumber;
             const mainEl = document.querySelector('main');
-
-            const today = new Date();
-            const month = String(today.getMonth() + 1).padStart(2,'0');
-            const day = String(today.getDate()).padStart(2,'0');
-            const rand = Math.floor(Math.random() * 90 + 10);
-            const orderNumber = `F-${month}${day}-${rand}`;
 
             const paymentHandles = {
                 "apple pay": "applepay@fermaison.us",
@@ -447,7 +447,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
                 </ul>
                 <button class="copy-btn" data-copy="#paymentHandle">copy handle</button>
                 <p>your order is confirmed once payment is received.</p>
-                <p>thank you for supporting woman owned business 💕</p>
+                <p>thank you 💕</p>
             </div>
             `;
 
