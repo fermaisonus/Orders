@@ -388,16 +388,8 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         return;
     }
 
-    // generate order number AFTER data exists
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2,'0');
-    const day = String(today.getDate()).padStart(2,'0');
-    const rand = Math.floor(Math.random() * 900 + 100);
-    const orderNumber = `F-${month}${day}-${rand}`;
-    
-    // gather form data
+    // build data object
     const data = {
-        orderNumber,
         name: document.getElementById('name').value,
         email: email.value,
         phone: phone.value,
@@ -425,8 +417,17 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         const result = await res.json();
 
         if(result.result === "success"){
+            const orderNumber = result.orderNumber;
+            
             const mainEl = document.querySelector('main');
+            
+// Build ordered items summary
+const orderedItems = menuItemsNames
+    .filter(name => data[name] > 0)
+    .map(name => `${name} x${data[name]}`)
+    .join('<br>');
 
+    // Determine payment handle
             const paymentHandles = {
                 "apple pay": "applepay@fermaison.us",
                 "cash app": "$fermaison",
@@ -436,34 +437,54 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
 
             const handle = paymentHandles[data.payment] || "please follow the payment instructions";
 
+            const mainEl = document.querySelector('main');
+            
             mainEl.innerHTML = `
             <div class="payment-card">
-                <h2>complete your payment</h2>
-                <p><strong>order number:</strong> <span id="orderNumber">${orderNumber}</span>
-                <button class="copy-btn" data-copy="#orderNumber">copy</button></p>
+                <h2>thank you 🤍</h2>
+
+                <p>
+                    <strong>order number:</strong> 
+                    <span id="orderNumber">${orderNumber}</span>
+                    <button class="copy-btn" data-copy="orderNumber">copy</button>
+                </p>
+
+                <p><strong>items:</strong><br>${orderedItems || "none"}</p>
+
+                <p><strong>total:</strong> $${data.total}</p>
+                <p><strong>pickup:</strong> ${data.pickup}</p>
+
+                <hr>
+
                 <p>send <strong>$${data.total}</strong> via <strong>${data.payment}</strong></p>
-                <p>please include your order number in the payment notes/message.</p>
-                <p>payment details:</p>
-                <ul>
-                    <li id="paymentHandle">${handle}</li>
-                </ul>
-                <button class="copy-btn" data-copy="#paymentHandle">copy handle</button>
+
+                <p>
+                    <strong id="paymentHandle">${handle}</strong>
+                    <button class="copy-btn" data-copy="paymentHandle">copy</button>
+                </p>
+
+                <p>include your order number in the payment notes.</p>
+
                 <p>your order is confirmed once payment is received.</p>
-                <p>thank you 💕</p>
             </div>
             `;
 
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            copyButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const target = document.querySelector(btn.dataset.copy);
-                    if(target){
-                        navigator.clipboard.writeText(target.textContent)
-                            .then(()=> alert('copied!'))
-                            .catch(()=> alert('copy failed'));
-                    }
-                });
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-copy');
+                const target = document.getElementById(targetId);
+
+                if (target) {
+                    navigator.clipboard.writeText(target.textContent)
+                        .then(() => {
+                            btn.textContent = "copied!";
+                            setTimeout(() => btn.textContent = "copy", 1000);
+                        })
+                        .catch(() => alert("copy failed"));
+                }
             });
+        });
+            
         } else {
             alert("error submitting order: " + result.message);
         }
