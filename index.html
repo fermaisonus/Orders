@@ -319,39 +319,28 @@ function calculateTotal() {
     totalEl.textContent = total.toFixed(2);
 }
 
-// load menu from Google Apps Script
+// load menu from backend
 async function loadMenu() {
-    console.log('Attempting to load menu...');
     try {
         const res = await fetch(WEB_APP_URL);
-        console.log('Fetch response:', res);
-
-        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-
         const menu = await res.json();
-        console.log('Parsed menu JSON:', menu);
-
-        if (!Array.isArray(menu)) throw new Error('Menu is not an array');
 
         menuContainer.innerHTML = '';
-
-        menu.forEach((item, i) => {
+        menu.forEach(item => {
             const div = document.createElement('div');
             div.classList.add('menu-item');
             div.innerHTML = `
                 <label>${item.name.toLowerCase()} ($${item.price})</label>
-                <input type="number" class="menu-qty" data-price="${item.price}" value="0" min="0">
+                <input type="number" class="menu-qty" value="0" min="0">
             `;
             menuContainer.appendChild(div);
         });
 
         menuQtys = document.querySelectorAll('.menu-qty');
-        menuItemsNames = Array.from(menuQtys).map((q, i) => menu[i].name.toLowerCase());
-        menuQtys.forEach(q => q.addEventListener('input', calculateTotal));
-
-    } catch (err) {
-        console.error('Menu load failed:', err);
-        menuContainer.textContent = 'Menu could not load. See console for details.';
+        menuItemsNames = menu.map(item => item.name.toLowerCase());
+    } catch(err) {
+        console.error(err);
+        menuContainer.textContent = 'Menu could not load.';
     }
 }
 
@@ -419,7 +408,6 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         if(result.result === "success"){
             const orderNumber = result.orderNumber;
             
-            const mainEl = document.querySelector('main');
             
 // Build ordered items summary
 const orderedItems = menuItemsNames
@@ -441,7 +429,7 @@ const orderedItems = menuItemsNames
             
             mainEl.innerHTML = `
             <div class="payment-card">
-                <h2>thank you 🤍</h2>
+                <h2>thank you 💕</h2>
 
                 <p>
                     <strong>order number:</strong> 
