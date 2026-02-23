@@ -428,13 +428,6 @@ if (isSuccess) {
         "check email for order number";
 
     const confirmedTotal = result.total || result?.data?.total || data.total;
-
-    // Build ordered items summary
-    const orderedItems = menuItemsNames
-        .filter(name => data[name] > 0)
-        .map(name => `${name} x${data[name]}`)
-        .join('<br>');
-
             
             
 // Build ordered items summary
