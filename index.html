@@ -404,31 +404,42 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
 
     try {
         const res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(data)
-        });
+  method: 'POST',
+  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  body: JSON.stringify(data)
+});
 
-        const result = await res.json();
-console.log("POST result:", result);
+const raw = await res.text();
+let result = {};
+try { result = JSON.parse(raw); } catch (_) {}
+if (typeof result === "string") {
+  try { result = JSON.parse(result); } catch (_) {}
+}
 
-// normalize success flag
-const isSuccess = String(result.result || result.status || "").toLowerCase() === "success";
+const isSuccess =
+  String(result.result || result.status || "").toLowerCase() === "success";
+
+// robust order number extraction
+const orderNumber =
+  result.orderNumber ||
+  result.ordernumber ||
+  result.order_number ||
+  result?.data?.orderNumber ||
+  result?.data?.ordernumber ||
+  result?.data?.order_number ||
+  // fallback: pull F-xxxx-xx from raw text
+  (raw.match(/F-\d{4}-\d+/)?.[0]) ||
+  "pending";
+
+const confirmedTotal = result.total || result?.data?.total || data.total;
 
 if (isSuccess) {
-    // robust order number extraction (different key shapes/casing)
-    const directKey = Object.keys(result).find(
-        k => k.toLowerCase() === "ordernumber" || k.toLowerCase() === "order_number"
-    );
+  // keep your existing card render, but use `orderNumber`:
+  // <span id="orderNumber">${orderNumber}</span>
+} else {
+  alert("error submitting order: " + (result.message || raw));
+}
 
-    const orderNumber =
-        (directKey ? result[directKey] : "") ||
-        result?.data?.orderNumber ||
-        result?.data?.order_number ||
-        "check email for order number";
-
-    const confirmedTotal = result.total || result?.data?.total || data.total;
-            
             
 // Build ordered items summary
 const orderedItems = menuItemsNames
