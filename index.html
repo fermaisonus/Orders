@@ -414,7 +414,19 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         console.log("POST result:", result);
         
         if(result.result === "success"){
-            const orderNumber = result.orderNumber || result.order_number || "pending";
+            const orderNumber =
+              result.orderNumber ??
+              result.order_number ??
+              result?.data?.orderNumber ??
+              result?.data?.order_number ??
+              "";
+
+        if (!String(orderNumber).trim()) {
+          console.log("POST result keys:", Object.keys(result), result);
+          alert("Order submitted, but order number was missing in response.");
+          return;
+        }
+
             const confirmedTotal = result.total || data.total;
             
             
