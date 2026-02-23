@@ -338,6 +338,11 @@ async function loadMenu() {
 
         menuQtys = document.querySelectorAll('.menu-qty');
         menuItemsNames = menu.map(item => item.name.toLowerCase());
+        menuQtys.forEach(input => {
+    input.addEventListener('input', calculateTotal);
+});
+calculateTotal();
+
     } catch(err) {
         console.error(err);
         menuContainer.textContent = 'Menu could not load.';
@@ -408,6 +413,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
 
         if(result.result === "success"){
             const orderNumber = result.orderNumber;
+            const confirmedTotal = result.total || data.total;
             
             
 // Build ordered items summary
@@ -440,12 +446,12 @@ const orderedItems = menuItemsNames
 
                 <p><strong>items:</strong><br>${orderedItems || "none"}</p>
 
-                <p><strong>total:</strong> $${data.total}</p>
+                <p><strong>total:</strong> $${confirmedTotal}</p>
                 <p><strong>pickup:</strong> ${data.pickup}</p>
 
                 <hr>
 
-                <p>send <strong>$${data.total}</strong> via <strong>${data.payment}</strong></p>
+                <p>send <strong>$${confirmedTotal}</strong> via <strong>${data.payment}</strong></p>
 
                 <p>
                     <strong id="paymentHandle">${handle}</strong>
