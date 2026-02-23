@@ -318,6 +318,32 @@ function calculateTotal() {
     totalEl.textContent = total.toFixed(2);
 }
 
+//computed pickup date
+function getNextPickupDate(pickupText) {
+  const m = String(pickupText || "").toLowerCase().match(/^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
+  if (!m) return "";
+
+  const dayMap = {
+    sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
+    thursday: 4, friday: 5, saturday: 6
+  };
+
+  const now = new Date();
+  const targetDay = dayMap[m[1]];
+  let daysAhead = (targetDay - now.getDay() + 7) % 7;
+  if (daysAhead === 0) daysAhead = 7; // next occurrence
+
+  const pickupDate = new Date(now);
+  pickupDate.setDate(now.getDate() + daysAhead);
+
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  }).format(pickupDate);
+}    
+    
 // load menu from backend
 async function loadMenu() {
     try {
@@ -383,12 +409,17 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
     }
 
     // build data object
+    const pickupRaw = document.getElementId('pickup').value;
+    const pickupDate = getNextPickupDate(pickupRaw);
+    
     const data = {
         name: document.getElementById('name').value,
         email: email.value,
         phone: phone.value,
         total: totalEl.textContent,
-        pickup: document.getElementById('pickup').value,
+        pickup: pickupRaw,
+        pickupDate: pickupDate,
+        pickupDisplay: ${pickupRaw} (${pickupDate})',
         payment: document.querySelector('input[name="payment"]:checked')?.value,
         allergies: document.getElementById('allergies').value,
         requests: document.getElementById('requests').value,
@@ -472,7 +503,7 @@ const orderedItems = menuItemsNames
                 <p><strong>items:</strong><br>${orderedItems || "none"}</p>
 
                 <p><strong>total:</strong> $${confirmedTotal}</p>
-                <p><strong>pickup:</strong> ${data.pickup}</p>
+                <p><strong>pickup:</strong> ${data.pickupDisplay}</p>
 
                 <hr>
 
