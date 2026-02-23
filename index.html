@@ -330,7 +330,8 @@ async function loadMenu() {
             div.classList.add('menu-item');
             div.innerHTML = `
                 <label>${item.name.toLowerCase()} ($${item.price})</label>
-                <input type="number" class="menu-qty" value="0" min="0">
+                <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}">
+
             `;
             menuContainer.appendChild(div);
         });
@@ -399,7 +400,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
     try {
         const res = await fetch(WEB_APP_URL, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(data)
         });
 
