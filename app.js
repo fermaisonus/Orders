@@ -43,6 +43,58 @@ function getNextPickupDate(pickupText) {
     }).format(pickupDate);
 }
 
+function buildPaymentConfig(paymentMethod, total, orderNumber) {
+    const amount = Number(total || 0).toFixed(2);
+    const note = `Fermaison order ${orderNumber}`;
+    const encodedNote = encodeURIComponent(note);
+
+    const configs = {
+        'cash app': {
+            deepLink: `cashapp://pay?cashtag=fermaison&amount=${amount}&note=${encodedNote}`,
+            webLink: `https://cash.app/$fermaison/${amount}`,
+            supportsPrefill: true
+        },
+        'venmo': {
+            deepLink: `venmo://paycharge?txn=pay&recipients=fermaison&amount=${amount}&note=${encodedNote}`,
+            webLink: `https://venmo.com/fermaison?txn=pay&amount=${amount}&note=${encodedNote}`,
+            supportsPrefill: true
+        },
+        'apple pay': {
+            deepLink: '',
+            webLink: '',
+            supportsPrefill: false
+        },
+        'zelle': {
+            deepLink: '',
+            webLink: '',
+            supportsPrefill: false
+        }
+    };
+
+    return configs[paymentMethod] || { deepLink: '', webLink: '', supportsPrefill: false };
+}
+
+function buildSmsLink(paymentMethod, handle, amount, orderNumber) {
+    const body = encodeURIComponent(
+        `Hi, I placed Fermaison order ${orderNumber}. Paying $${amount} via ${paymentMethod} to ${handle}.`
+    );
+    return `sms:?&body=${body}`;
+}
+
+function launchPayment(deepLink, webLink) {
+    if (!deepLink && !webLink) return;
+    if (deepLink) {
+        window.location.href = deepLink;
+        if (webLink) {
+            setTimeout(() => {
+                window.location.href = webLink;
+            }, 1200);
+        }
+        return;
+    }
+    window.location.href = webLink;
+}
+
 async function loadMenu() {
     try {
         const res = await fetch(WEB_APP_URL);
@@ -166,6 +218,15 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
             };
 
             const handle = paymentHandles[data.payment] || 'please follow the payment instructions';
+            const paymentConfig = buildPaymentConfig(data.payment, confirmedTotal, orderNumber);
+            const payButtonLabel = paymentConfig.supportsPrefill
+                ? `pay in ${data.payment}`
+                : 'pay manually';
+            const paymentNotice = paymentConfig.supportsPrefill
+                ? `opens ${data.payment} with amount and order note prefilled`
+                : data.payment === 'apple pay'
+                    ? 'opens messages with a prefilled payment text'
+                    : `${data.payment} cannot be prefilled from web. use the details below`;
             const mainEl = document.querySelector('main');
 
             mainEl.innerHTML = `
@@ -185,6 +246,8 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
                     <strong id="paymentHandle">${handle}</strong>
                     <button class="copy-btn" data-copy="paymentHandle">copy</button>
                 </p>
+                <button type="button" id="payNowBtn" class="pay-now-btn">${payButtonLabel}</button>
+                <p class="payment-note">${paymentNotice}</p>
                 <p>include your order number in the payment notes.</p>
                 <p>your order is confirmed once payment is received.</p>
             </div>
@@ -205,6 +268,22 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
                     }
                 });
             });
+
+            const payNowBtn = document.getElementById('payNowBtn');
+            if (payNowBtn) {
+                payNowBtn.addEventListener('click', () => {
+                    if (data.payment === 'apple pay') {
+                        const smsLink = buildSmsLink('apple pay', handle, confirmedTotal, orderNumber);
+                        window.location.href = smsLink;
+                        return;
+                    }
+                    if (!paymentConfig.deepLink && !paymentConfig.webLink) {
+                        alert('Please pay manually using the handle and include your order number in the note.');
+                        return;
+                    }
+                    launchPayment(paymentConfig.deepLink, paymentConfig.webLink);
+                });
+            }
         } else {
             alert('error submitting order: ' + (result.message || raw));
         }
