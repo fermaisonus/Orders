@@ -410,22 +410,30 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
         });
 
         const result = await res.json();
+console.log("POST result:", result);
 
-        console.log("POST result:", result);
-        
-        if(result.result === "success"){
-            const orderNumber =
-              result.orderNumber ??
-              result.order_number ??
-              result?.data?.orderNumber ??
-              result?.data?.order_number ??
-              "";
+// normalize success flag
+const isSuccess = String(result.result || result.status || "").toLowerCase() === "success";
 
-        if (!String(orderNumber).trim()) {
-          console.log("POST result keys:", Object.keys(result), result);
-          alert("Order submitted, but order number was missing in response.");
-          return;
-        }
+if (isSuccess) {
+    // robust order number extraction (different key shapes/casing)
+    const directKey = Object.keys(result).find(
+        k => k.toLowerCase() === "ordernumber" || k.toLowerCase() === "order_number"
+    );
+
+    const orderNumber =
+        (directKey ? result[directKey] : "") ||
+        result?.data?.orderNumber ||
+        result?.data?.order_number ||
+        "check email for order number";
+
+    const confirmedTotal = result.total || result?.data?.total || data.total;
+
+    // Build ordered items summary
+    const orderedItems = menuItemsNames
+        .filter(name => data[name] > 0)
+        .map(name => `${name} x${data[name]}`)
+        .join('<br>');
 
             const confirmedTotal = result.total || data.total;
             
