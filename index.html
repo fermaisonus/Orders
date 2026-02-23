@@ -409,7 +409,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
     }
 
     // build data object
-    const pickupRaw = document.getElementId('pickup').value;
+    const pickupRaw = document.getElementById('pickup').value;
     const pickupDate = getNextPickupDate(pickupRaw);
     
     const data = {
