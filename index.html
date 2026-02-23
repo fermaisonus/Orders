@@ -411,8 +411,10 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
 
         const result = await res.json();
 
+        console.log("POST result:", result);
+        
         if(result.result === "success"){
-            const orderNumber = result.orderNumber;
+            const orderNumber = result.orderNumber || result.order_number || "pending";
             const confirmedTotal = result.total || data.total;
             
             
