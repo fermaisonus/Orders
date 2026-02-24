@@ -133,7 +133,10 @@ function renderMenu(menu) {
         const div = document.createElement('div');
         div.classList.add('menu-item');
         div.innerHTML = `
-            <label>${item.name.toLowerCase()} ($${item.price})</label>
+            <div class="menu-item-info">
+                <label class="menu-item-title">${item.name.toLowerCase()} ($${item.price})</label>
+                ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
+            </div>
             <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}">
         `;
         menuContainer.appendChild(div);
