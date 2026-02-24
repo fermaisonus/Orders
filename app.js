@@ -1,4 +1,6 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxAhByd30dfj83zNLLl-KBvHNuYn4ksaVCzWMBHsf6gTnV5Aaf86yP6IJyhUg4YSm3v/exec';
+const MENU_CACHE_KEY = 'fermaison_menu_cache_v1';
+const MENU_CACHE_TTL_MS = 10 * 60 * 1000;
 const menuContainer = document.getElementById('menuContainer');
 const totalEl = document.getElementById('total');
 const breadForm = document.getElementById('breadForm');
@@ -65,6 +67,14 @@ function getNextPickupDate(pickupText) {
     }).format(pickupDate);
 }
 
+function getFulfillmentNote(now = new Date()) {
+    const day = now.getDay(); // 0=sun ... 6=sat
+    const isNextWeekWindow = day === 0 || day >= 4;
+    return isNextWeekWindow
+        ? "this order is scheduled for next week's pickup window."
+        : "this order is scheduled for this week's pickup window.";
+}
+
 function buildPaymentConfig(paymentMethod, total, orderNumber) {
     const amount = Number(total || 0).toFixed(2);
     const note = `Fermaison order ${orderNumber}`;
@@ -117,31 +127,69 @@ function launchPayment(deepLink, webLink) {
     window.location.href = webLink;
 }
 
+function renderMenu(menu) {
+    menuContainer.innerHTML = '';
+    menu.forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('menu-item');
+        div.innerHTML = `
+            <label>${item.name.toLowerCase()} ($${item.price})</label>
+            <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}">
+        `;
+        menuContainer.appendChild(div);
+    });
+
+    menuQtys = document.querySelectorAll('.menu-qty');
+    menuItemsNames = menu.map(item => item.name.toLowerCase());
+    menuQtys.forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+    calculateTotal();
+}
+
+function getCachedMenu() {
+    try {
+        const raw = localStorage.getItem(MENU_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.menu || !Array.isArray(parsed.menu)) return null;
+        const isFresh = Date.now() - Number(parsed.savedAt || 0) < MENU_CACHE_TTL_MS;
+        return isFresh ? parsed.menu : null;
+    } catch (err) {
+        return null;
+    }
+}
+
+function setCachedMenu(menu) {
+    try {
+        localStorage.setItem(MENU_CACHE_KEY, JSON.stringify({
+            menu,
+            savedAt: Date.now()
+        }));
+    } catch (err) {
+        // Ignore storage failures.
+    }
+}
+
 async function loadMenu() {
+    const cachedMenu = getCachedMenu();
+    if (cachedMenu && cachedMenu.length) {
+        renderMenu(cachedMenu);
+    }
+
     try {
         const res = await fetch(WEB_APP_URL);
         const menu = await res.json();
-
-        menuContainer.innerHTML = '';
-        menu.forEach(item => {
-            const div = document.createElement('div');
-            div.classList.add('menu-item');
-            div.innerHTML = `
-                <label>${item.name.toLowerCase()} ($${item.price})</label>
-                <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}">
-            `;
-            menuContainer.appendChild(div);
-        });
-
-        menuQtys = document.querySelectorAll('.menu-qty');
-        menuItemsNames = menu.map(item => item.name.toLowerCase());
-        menuQtys.forEach(input => {
-            input.addEventListener('input', calculateTotal);
-        });
-        calculateTotal();
+        if (!Array.isArray(menu) || !menu.length) {
+            throw new Error('Invalid menu response');
+        }
+        renderMenu(menu);
+        setCachedMenu(menu);
     } catch (err) {
         console.error(err);
-        menuContainer.textContent = 'Menu could not load.';
+        if (!cachedMenu) {
+            menuContainer.textContent = 'Menu could not load.';
+        }
     }
 }
 
@@ -187,6 +235,7 @@ breadForm.addEventListener('submit', async e => {
         pickup: pickupRaw,
         pickupDate: pickupDate,
         pickupDisplay: `${pickupRaw} (${pickupDate})`,
+        fulfillmentNote: getFulfillmentNote(),
         payment: document.querySelector('input[name="payment"]:checked')?.value,
         allergies: document.getElementById('allergies').value,
         requests: document.getElementById('requests').value,
@@ -265,6 +314,7 @@ breadForm.addEventListener('submit', async e => {
                 <p><strong>items:</strong><br>${orderedItems || 'none'}</p>
                 <p><strong>total:</strong> $${confirmedTotal}</p>
                 <p><strong>pickup:</strong> ${data.pickupDisplay || data.pickup}</p>
+                <p><strong>schedule:</strong> ${data.fulfillmentNote}</p>
                 <hr>
                 <p>send <strong>$${confirmedTotal}</strong> via <strong>${data.payment}</strong></p>
                 <p>
@@ -275,6 +325,7 @@ breadForm.addEventListener('submit', async e => {
                 <p class="payment-note">${paymentNotice}</p>
                 <p>include your order number in the payment notes.</p>
                 <p>your order is confirmed once payment is received.</p>
+                <p class="payment-note">orders placed after wednesday are fulfilled in the following week's pickup window.</p>
             </div>
             `;
 
