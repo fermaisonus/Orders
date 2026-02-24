@@ -220,6 +220,10 @@ button:disabled {
     text-align: center;
 }
 
+.socials-line a {
+    color: #000;
+}
+
 @keyframes fadeSlideIn {
     to {
         opacity: 1;
