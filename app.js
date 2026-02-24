@@ -1,8 +1,30 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxAhByd30dfj83zNLLl-KBvHNuYn4ksaVCzWMBHsf6gTnV5Aaf86yP6IJyhUg4YSm3v/exec';
 const menuContainer = document.getElementById('menuContainer');
 const totalEl = document.getElementById('total');
+const breadForm = document.getElementById('breadForm');
+const submitBtn = breadForm.querySelector('button[type="submit"]');
+const submitStatusEl = document.getElementById('submitStatus');
 let menuQtys = [];
 let menuItemsNames = [];
+let isSubmitting = false;
+
+function buildSubmissionId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    return `sub_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function setSubmitState(submitting, message) {
+    if (submitBtn) {
+        submitBtn.disabled = submitting;
+        submitBtn.textContent = submitting ? 'submitting order...' : 'submit order';
+    }
+    if (submitStatusEl) {
+        submitStatusEl.textContent = message || '';
+    }
+    isSubmitting = submitting;
+}
 
 function calculateTotal() {
     let total = 0;
@@ -128,9 +150,10 @@ phoneInput.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0, 10);
 });
 
-document.getElementById('breadForm').addEventListener('submit', async e => {
+breadForm.addEventListener('submit', async e => {
     e.preventDefault();
     const form = e.target;
+    if (isSubmitting) return;
 
     if (!form.checkValidity()) {
         form.reportValidity();
@@ -156,6 +179,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
     const pickupDate = getNextPickupDate(pickupRaw);
 
     const data = {
+        submissionId: buildSubmissionId(),
         name: document.getElementById('name').value,
         email: email.value,
         phone: phone.value,
@@ -176,6 +200,7 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
     });
 
     try {
+        setSubmitState(true, 'processing your order. please wait...');
         const res = await fetch(WEB_APP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -285,9 +310,11 @@ document.getElementById('breadForm').addEventListener('submit', async e => {
                 });
             }
         } else {
+            setSubmitState(false, '');
             alert('error submitting order: ' + (result.message || raw));
         }
     } catch (err) {
+        setSubmitState(false, '');
         alert('error submitting order: ' + err.message);
     }
 });
