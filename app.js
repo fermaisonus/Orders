@@ -134,7 +134,16 @@ function launchPayment(deepLink, webLink) {
 
 function renderMenu(menu) {
     menuContainer.innerHTML = '';
-    menu.forEach(item => {
+
+    const mothersDayContainer = document.getElementById('mothersDayItems');
+    if (mothersDayContainer) {
+        mothersDayContainer.innerHTML = '';
+    }
+
+    const regularMenu = menu.filter(item => item.section === 'regular' && item.active);
+    const mothersDayMenu = menu.filter(item => item.section === 'mothers-day' && item.active);
+
+    regularMenu.forEach(item => {
         const div = document.createElement('div');
         div.classList.add('menu-item');
         div.innerHTML = `
@@ -142,21 +151,38 @@ function renderMenu(menu) {
                 <label class="menu-item-title">${item.name.toLowerCase()} ($${item.price})</label>
                 ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
             </div>
-            <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}">
+            <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${item.name.toLowerCase()}">
         `;
         menuContainer.appendChild(div);
     });
 
+    if (mothersDayContainer) {
+        mothersDayMenu.forEach(item => {
+            const div = document.createElement('div');
+            div.classList.add('menu-item');
+            div.innerHTML = `
+                <div class="menu-item-info">
+                    <label class="menu-item-title">${item.name.toLowerCase()} ($${item.price})</label>
+                    ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
+                </div>
+                <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${item.name.toLowerCase()}">
+            `;
+            mothersDayContainer.appendChild(div);
+        });
+    }
+
+    const mothersDaySection = document.getElementById('mothersDaySection');
+    if (mothersDaySection) {
+        mothersDaySection.style.display = mothersDayMenu.length ? '' : 'none';
+    }
+
     menuQtys = document.querySelectorAll('.menu-qty');
-    menuItemsNames = [
-    ...menu.map(item => item.name.toLowerCase()),
-    "maman",
-    "mom",
-    "mama"
-];
+    menuItemsNames = Array.from(menuQtys).map(q => q.dataset.name);
+
     menuQtys.forEach(input => {
         input.addEventListener('input', calculateTotal);
     });
+
     calculateTotal();
 }
 
