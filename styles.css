@@ -303,22 +303,25 @@ button:disabled {
 /* bottom roses */
 .md-bottom {
     position: absolute;
-    bottom: -58px;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+    bottom: -36px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 10;
     pointer-events: none;
+    background: #fff;
+    padding: 0 16px;
+    line-height: 0;
 }
 
 .md-bottom img {
     display: block;
-    width: 320px;
-    max-width: 70%;
+    width: 340px;
+    max-width: 72%;
     height: auto;
-    background: #fff;
-    padding: 0 10px;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 /* mobile */
