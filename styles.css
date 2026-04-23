@@ -293,8 +293,8 @@ button:disabled {
     display: block;
     width: 320px !important;
     max-width: none !important;
-    height: auto;
-    margin: 0 auto;
+    background: #fff;        /* 👈 hides border behind it */
+    padding: 10px;           /* 👈 creates clean separation */
 }
 
 .md-left,
