@@ -236,3 +236,29 @@ button:disabled {
         padding: 0 15px;
     }
 }
+
+
+/* --- mother's day section --- */
+
+.md-frame {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.md-art {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.md-menu {
+    flex: 2;
+    text-align: center;
+    font-size: 0.95em;
+}
+
+.md-menu p {
+    margin: 15px 0;
+}
