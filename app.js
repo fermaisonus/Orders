@@ -148,7 +148,7 @@ function renderMenu(menu) {
     });
 
     menuQtys = document.querySelectorAll('.menu-qty');
-    menuItemsNames = menu.map(item => item.name.toLowerCase());
+    mmenuItemsNames = menu.map(item => item.key || item.name.toLowerCase());
     menuQtys.forEach(input => {
         input.addEventListener('input', calculateTotal);
     });
