@@ -244,11 +244,11 @@ button:disabled {
     position: relative;
     overflow: visible !important;
     margin-top: 140px;
-    padding: 120px 50px 35px;
+    padding: 120px 50px 95px;
     text-align: center;
 }
 
-/* header image */
+/* top image */
 .md-top {
     position: absolute;
     top: -95px;
@@ -266,40 +266,16 @@ button:disabled {
     max-width: 92%;
     height: auto;
     background: #fff;
+    padding: 0 10px;
 }
 
-/* side artwork */
-.md-left,
-.md-right {
-    position: absolute;
-    top: 145px;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.md-left {
-    left: 12px;
-}
-
-.md-right {
-    right: 12px;
-}
-
-.md-left img,
-.md-right img {
-    display: block;
-    width: 70px;
-    height: auto;
-}
-
-/* content area */
+/* content */
 .md-content {
     position: relative;
     z-index: 2;
     padding-top: 95px;
 }
 
-/* match normal menu layout */
 .mothers-day-card .menu-item {
     display: flex;
     justify-content: space-between;
@@ -324,11 +300,32 @@ button:disabled {
     line-height: 1.4;
 }
 
+/* bottom roses */
+.md-bottom {
+    position: absolute;
+    bottom: -58px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.md-bottom img {
+    display: block;
+    width: 320px;
+    max-width: 70%;
+    height: auto;
+    background: #fff;
+    padding: 0 10px;
+}
+
 /* mobile */
 @media (max-width: 600px) {
     .mothers-day-card {
         margin-top: 90px;
-        padding: 92px 24px 28px;
+        padding: 92px 24px 78px;
     }
 
     .md-top {
@@ -338,28 +335,21 @@ button:disabled {
     .md-top img {
         width: 300px;
         max-width: 95%;
-    }
-
-    .md-left,
-    .md-right {
-        top: 120px;
-    }
-
-    .md-left {
-        left: 4px;
-    }
-
-    .md-right {
-        right: 4px;
-    }
-
-    .md-left img,
-    .md-right img {
-        width: 56px;
+        padding: 0 8px;
     }
 
     .md-content {
         padding-top: 72px;
+    }
+
+    .md-bottom {
+        bottom: -38px;
+    }
+
+    .md-bottom img {
+        width: 220px;
+        max-width: 82%;
+        padding: 0 8px;
     }
 }
 
