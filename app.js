@@ -383,12 +383,10 @@ breadForm.addEventListener('submit', async e => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    // toggle mothers day section
-    const mdSection = document.getElementById('mothersDaySection');
-    if (!SHOW_MOTHERS_DAY && mdSection) {
-        mdSection.remove();
-    }
-
-    // existing logic
     loadMenu();
+
+    if (isMothersDayActive()) {
+        renderMothersDayMenu();
+    }
 });
+
