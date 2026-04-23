@@ -179,6 +179,63 @@ function setCachedMenu(menu) {
     }
 }
 
+function renderMothersDayMenu() {
+    const container = document.getElementById('mothersDayContainer');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="card">
+            <h2>mother's day</h2>
+
+            <div class="md-frame">
+                
+                <!-- LEFT SVG -->
+                <div class="md-art left">
+                    ${heartSVG()}
+                </div>
+
+                <!-- MENU -->
+                <div class="md-menu">
+                    <p><strong>“maman”</strong><br>
+                    personal size focaccia des rois & a bespoke arrangement that’ll transport her to the french countryside.</p>
+
+                    <p><strong>“mom”</strong><br>
+                    personal size strawberry cheesecake focaccia & a whimsy arrangement that’ll feel too aesthetic not to post (;</p>
+
+                    <p><strong>“mamã”</strong><br>
+                    personal size focaccia with garlic confit and olives + a gorgeous arrangement that’ll end up front and center at the dinner table</p>
+                </div>
+
+                <!-- RIGHT SVG -->
+                <div class="md-art right">
+                    ${roseSVG()}
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
+function heartSVG() {
+    return `
+    <svg viewBox="0 0 200 200" width="120">
+        <path d="M100 180 L20 90 A40 40 0 1 1 100 40 A40 40 0 1 1 180 90 Z"
+              fill="none" stroke="black" stroke-width="2"/>
+        <path d="M50 100 H150" stroke="black" stroke-width="2"/>
+        <text x="100" y="95" text-anchor="middle" font-size="16">MOM</text>
+    </svg>`;
+}
+
+function roseSVG() {
+    return `
+    <svg viewBox="0 0 200 200" width="120">
+        <circle cx="100" cy="80" r="30" fill="none" stroke="black" stroke-width="2"/>
+        <path d="M100 110 L100 170" stroke="black" stroke-width="2"/>
+        <path d="M100 130 C80 120, 80 140, 100 140" fill="none" stroke="black" stroke-width="2"/>
+        <path d="M100 150 C120 140, 120 160, 100 160" fill="none" stroke="black" stroke-width="2"/>
+    </svg>`;
+}
+
 async function loadMenu() {
     const cachedMenu = getCachedMenu();
     if (cachedMenu && cachedMenu.length) {
