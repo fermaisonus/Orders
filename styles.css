@@ -271,10 +271,8 @@ button:disabled {
 
 /* ===== MOTHER'S DAY SECTION ===== */
 
-/* ===== MOTHER'S DAY SECTION ===== */
-
 .mothers-day-card {
-    margin-top: 120px;
+    margin-top: -120px;
     position: relative;
     overflow: visible !important;
     padding: 150px 80px 40px;
