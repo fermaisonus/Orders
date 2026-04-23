@@ -266,3 +266,55 @@ button:disabled {
 .md-art svg {
     opacity: 0.7;
 }
+
+/* ===== MOTHER'S DAY SECTION ===== */
+
+.mothers-day-card {
+    position: relative;
+    padding: 100px 80px 40px;
+    overflow: hidden;
+    text-align: center;
+}
+
+.md-content {
+    position: relative;
+    z-index: 2;
+}
+
+.md-item {
+    margin-bottom: 25px;
+}
+
+/* heart (top center) */
+.md-top {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.md-top img {
+    width: 140px;
+}
+
+/* left decoration */
+.md-left {
+    position: absolute;
+    left: 10px;
+    top: 120px;
+}
+
+.md-left img {
+    width: 90px;
+}
+
+/* right decoration */
+.md-right {
+    position: absolute;
+    right: 10px;
+    top: 120px;
+}
+
+.md-right img {
+    width: 90px;
+}
