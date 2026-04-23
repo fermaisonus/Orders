@@ -331,39 +331,6 @@ button:disabled {
     margin-bottom: 22px;
 }
 
-@media (max-width: 600px) {
-    .mothers-day-card {
-        margin-top: 28px;
-        padding: 82px 24px 28px;
-    }
-
-    .md-top {
-        top: -36px;
-    }
-
-    .md-top img {
-        width: 320px;
-        padding: 6px 10px;
-    }
-
-    .md-left,
-    .md-right {
-        top: 96px;
-    }
-
-    .md-left {
-        left: 4px;
-    }
-
-    .md-right {
-        right: 4px;
-    }
-
-    .md-left img,
-    .md-right img {
-        width: 52px;
-    }
-}
 
 /* mobile */
 @media (max-width: 600px) {
