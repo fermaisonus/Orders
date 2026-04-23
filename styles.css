@@ -297,7 +297,7 @@ button:disabled {
 }
 
 .md-top img {
-    width: 260px;
+    width: 400px;
     max-width: 70%;
     display: block;
 }
@@ -337,7 +337,7 @@ button:disabled {
     }
 
     .md-top {
-        top: -38px;
+        top: -70px;
     }
 
     .md-top img {
