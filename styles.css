@@ -271,42 +271,37 @@ button:disabled {
 
 /* ===== MOTHER'S DAY SECTION ===== */
 
+/* ===== MOTHER'S DAY SECTION ===== */
+
 .mothers-day-card {
     position: relative;
-    padding: 140px 80px 40px;
     overflow: visible !important;
+    padding: 150px 80px 40px;
     text-align: center;
 }
 
-.md-content {
-    position: relative;
-    z-index: 2;
-}
-
-.md-item {
-    margin-bottom: 25px;
-}
-
-/* top heart/banner */
 .md-top {
     position: absolute;
-    top: -80px;
+    top: -95px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 999;
+    z-index: 10;
+    width: 100%;
+    pointer-events: none;
 }
 
 .md-top img {
-    width: 400px !important;
-    max-width: none !important;
     display: block;
+    width: 320px !important;
+    max-width: none !important;
+    height: auto;
+    margin: 0 auto;
 }
 
-/* side artwork */
 .md-left,
 .md-right {
     position: absolute;
-    top: 115px;
+    top: 120px;
     z-index: 1;
     pointer-events: none;
 }
@@ -321,8 +316,42 @@ button:disabled {
 
 .md-left img,
 .md-right img {
-    width: 85px;
     display: block;
+    width: 80px;
+    height: auto;
+}
+
+.md-content {
+    position: relative;
+    z-index: 2;
+}
+
+.md-item {
+    margin-bottom: 25px;
+}
+
+@media (max-width: 600px) {
+    .mothers-day-card {
+        padding: 110px 28px 30px;
+    }
+
+    .md-top {
+        top: -58px;
+    }
+
+    .md-top img {
+        width: 220px !important;
+    }
+
+    .md-left,
+    .md-right {
+        top: 110px;
+    }
+
+    .md-left img,
+    .md-right img {
+        width: 52px;
+    }
 }
 
 /* give text room so art doesn't crowd it */
