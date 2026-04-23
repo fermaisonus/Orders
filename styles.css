@@ -244,7 +244,7 @@ button:disabled {
     position: relative;
     overflow: visible !important;
     margin-top: 140px;
-    padding: 120px 50px 95px;
+    padding: 120px 50px 145px;
     text-align: center;
 }
 
@@ -325,21 +325,12 @@ button:disabled {
     box-shadow: none;
 }
 
+
 /* mobile */
 @media (max-width: 600px) {
+
     .mothers-day-card {
-        margin-top: 90px;
-        padding: 92px 24px 78px;
-    }
-
-    .md-top {
-        top: -58px;
-    }
-
-    .md-top img {
-        width: 300px;
-        max-width: 95%;
-        padding: 0 8px;
+        padding: 92px 24px 110px;
     }
 
     .md-content {
@@ -347,47 +338,17 @@ button:disabled {
     }
 
     .md-bottom {
-        bottom: -38px;
+        bottom: -36px;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
 
     .md-bottom img {
-        width: 220px;
-        max-width: 82%;
-        padding: 0 8px;
-    }
-}
-
-
-/* mobile */
-@media (max-width: 600px) {
-    .mothers-day-card {
-        padding: 95px 28px 30px;
-    }
-
-    .md-top {
-        top: -45px;
-    }
-
-    .md-top img {
         width: 240px;
+        max-width: 84%;
+        padding: 0 10px;
     }
 
-    .md-left,
-    .md-right {
-        top: 105px;
-    }
-
-    .md-left {
-        left: 4px;
-    }
-
-    .md-right {
-        right: 4px;
-    }
-
-    .md-left img,
-    .md-right img {
-        width: 56px;
-    }
 }
-
