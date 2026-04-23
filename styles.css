@@ -273,8 +273,8 @@ button:disabled {
 
 .mothers-day-card {
     position: relative;
-    padding: 120px 80px 40px;
-    overflow: visible;
+    padding: 140px 80px 40px;
+    overflow: visible !important;
     text-align: center;
 }
 
@@ -290,15 +290,15 @@ button:disabled {
 /* top heart/banner */
 .md-top {
     position: absolute;
-    top: -55px;
+    top: -80px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 3;
+    z-index: 999;
 }
 
 .md-top img {
-    width: 400px;
-    max-width: 70%;
+    width: 400px !important;
+    max-width: none !important;
     display: block;
 }
 
