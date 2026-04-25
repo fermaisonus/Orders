@@ -471,10 +471,12 @@ breadForm.addEventListener('submit', async e => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadMenu();
+    const mothersDaySection = document.getElementById('mothersDaySection');
 
-    if (isMothersDayActive()) {
-        renderMothersDayMenu();
+    if (!isMothersDayActive() && mothersDaySection) {
+        mothersDaySection.style.display = 'none';
     }
+
+    loadMenu();
 });
 
