@@ -12,6 +12,10 @@ const submitBtn = breadForm.querySelector('button[type="submit"]');
 const submitStatusEl = document.getElementById('submitStatus');
 const mothersDaySection = document.getElementById('mothersDaySection');
 const mothersDayContainer = document.getElementById('mothersDayItems');
+const regularPickupInput = document.getElementById('regularPickup');
+const mothersDayPickupInput = document.getElementById('mothersDayPickup');
+const apartmentInput = document.getElementById('apartment');
+const watermarcDetails = document.getElementById('watermarcDetails');
 
 let menuQtys = [];
 let menuItemsNames = [];
@@ -57,6 +61,40 @@ function calculateTotal() {
         total += qty * parseFloat(q.dataset.price || '0');
     });
     totalEl.textContent = total.toFixed(2);
+    updateFulfillmentRequirements();
+}
+
+function hasSelectedItemsInSection(section) {
+    return Array.from(menuQtys).some(input => {
+        const qty = parseInt(input.value, 10) || 0;
+        return qty > 0 && input.dataset.section === section;
+    });
+}
+
+function isWatermarcSelected() {
+    return String(mothersDayPickupInput?.value || '').toLowerCase().includes('watermarc');
+}
+
+function updateFulfillmentRequirements() {
+    const hasRegularItems = hasSelectedItemsInSection('regular');
+    const hasMothersDayItems = hasSelectedItemsInSection('mothers-day');
+    const watermarcSelected = isWatermarcSelected();
+
+    if (regularPickupInput) {
+        regularPickupInput.required = hasRegularItems;
+    }
+
+    if (mothersDayPickupInput) {
+        mothersDayPickupInput.required = hasMothersDayItems;
+    }
+
+    if (apartmentInput) {
+        apartmentInput.required = hasMothersDayItems && watermarcSelected;
+    }
+
+    if (watermarcDetails) {
+        watermarcDetails.hidden = !watermarcSelected;
+    }
 }
 
 function getNextPickupDate(pickupText) {
@@ -183,7 +221,7 @@ function buildMenuItem(item) {
             <label class="menu-item-title">${item.name.toLowerCase()} ($${item.price})</label>
             ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
         </div>
-        <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${itemKey}" data-label="${item.name.toLowerCase()}">
+        <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${itemKey}" data-label="${item.name.toLowerCase()}" data-section="${item.section}">
     `;
     return div;
 }
@@ -284,10 +322,22 @@ phoneInput.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0, 10);
 });
 
+if (mothersDayPickupInput) {
+    mothersDayPickupInput.addEventListener('change', updateFulfillmentRequirements);
+}
+
 breadForm.addEventListener('submit', async e => {
     e.preventDefault();
     const form = e.target;
     if (isSubmitting) return;
+
+    updateFulfillmentRequirements();
+
+    const hasOrderedItems = Array.from(menuQtys).some(q => (parseInt(q.value, 10) || 0) > 0);
+    if (!hasOrderedItems) {
+        alert('please choose at least one item before submitting.');
+        return;
+    }
 
     if (!form.checkValidity()) {
         form.reportValidity();
@@ -309,8 +359,23 @@ breadForm.addEventListener('submit', async e => {
         return;
     }
 
-    const pickupRaw = document.getElementById('pickup').value;
-    const pickupDate = getNextPickupDate(pickupRaw);
+    const regularPickup = regularPickupInput?.value || '';
+    const mothersDayPickup = mothersDayPickupInput?.value || '';
+    const apartment = isWatermarcSelected() ? (apartmentInput?.value.trim() || '') : '';
+    const regularPickupDate = regularPickup ? getNextPickupDate(regularPickup) : '';
+    const mothersDayPickupDate = mothersDayPickup ? formatLongDate(MOTHERS_DAY_PICKUP_DATE) : '';
+    const pickupParts = [];
+
+    if (regularPickup) {
+        pickupParts.push(`regular bread: ${regularPickup}${regularPickupDate ? ` (${regularPickupDate})` : ''}`);
+    }
+
+    if (mothersDayPickup) {
+        pickupParts.push(`mother's day: ${mothersDayPickup}${mothersDayPickupDate ? ` (${mothersDayPickupDate})` : ''}${apartment ? `, apt ${apartment}` : ''}`);
+    }
+
+    const pickupRaw = pickupParts.join(' | ');
+    const pickupDate = [regularPickupDate, mothersDayPickupDate].filter(Boolean).join(' | ');
 
     const data = {
         submissionId: buildSubmissionId(),
@@ -320,7 +385,12 @@ breadForm.addEventListener('submit', async e => {
         total: totalEl.textContent,
         pickup: pickupRaw,
         pickupDate,
-        pickupDisplay: `${pickupRaw} (${pickupDate})`,
+        pickupDisplay: pickupRaw,
+        regularPickup,
+        regularPickupDate,
+        mothersDayPickup,
+        mothersDayPickupDate,
+        apartment,
         fulfillmentNote: getFulfillmentNote(),
         payment: document.querySelector('input[name="payment"]:checked')?.value,
         allergies: document.getElementById('allergies').value,

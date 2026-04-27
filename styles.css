@@ -138,6 +138,14 @@ button:disabled {
     text-align: center;
 }
 
+.conditional-field[hidden] {
+    display: none;
+}
+
+.conditional-field {
+    margin-top: 12px;
+}
+
 .radio-group {
     display: flex;
     flex-direction: column;

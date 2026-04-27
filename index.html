@@ -54,12 +54,26 @@
 
 <div class="card">
 <h2>pickup info</h2>
-<label for="pickup">choose pickup time</label>
-<select id="pickup" required>
-<option value="">select a time</option>
-<option>sunday 9am - 2pm</option>
+<label for="regularPickup">regular bread pickup</label>
+<select id="regularPickup">
+<option value="">select regular pickup if ordering regular bread</option>
+<option value="sunday 9am - 2pm">sunday 9am - 2pm</option>
 </select>
-<p>pickup location will be sent with your order confirmation the day before pickup.</p>
+<p>regular pickup location will be sent with your order confirmation the day before pickup.</p>
+
+<label for="mothersDayPickup">mother's day pickup/delivery</label>
+<select id="mothersDayPickup">
+<option value="">select mother's day fulfillment if ordering mother's day</option>
+<option value="MiMo pickup | 3-5pm">MiMo pickup | 3-5pm</option>
+<option value="Watermarc delivery/pickup | 7-9pm">Watermarc delivery/pickup | 7-9pm</option>
+</select>
+<p id="pickupHelp">MiMo location details will be emailed after order confirmation. Watermarc details will be sent after order confirmation.</p>
+
+<div id="watermarcDetails" class="conditional-field" hidden>
+<label for="apartment">Watermarc apartment number</label>
+<input type="text" id="apartment" autocomplete="address-line2" placeholder="apt / unit number">
+<p>please include your apartment number so we can deliver your order if you choose Watermarc.</p>
+</div>
 </div>
 
 <div class="card">
