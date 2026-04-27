@@ -262,8 +262,8 @@ button:disabled {
     position: relative;
     overflow: visible !important;
     margin-top: 150px;
-    margin-bottom: 150px;
-    padding: 150px 50px 190px;
+    margin-bottom: 80px;
+    padding: 150px 50px 95px;
     text-align: center;
 }
 
@@ -295,7 +295,7 @@ button:disabled {
 
 .md-bottom {
     position: absolute;
-    bottom: -135px;
+    bottom: -58px;
     left: 0;
     width: 100%;
     display: flex;
@@ -307,8 +307,8 @@ button:disabled {
 
 .md-bottom img {
     display: block;
-    width: 760px;
-    max-width: 96%;
+    width: 420px;
+    max-width: 82%;
     height: auto;
     background: #fff;
     padding: 0 14px;
@@ -320,8 +320,8 @@ button:disabled {
 @media (max-width: 600px) {
     .mothers-day-card {
         margin-top: 96px;
-        margin-bottom: 92px;
-        padding: 102px 24px 130px;
+        margin-bottom: 62px;
+        padding: 102px 24px 82px;
     }
 
     .md-top {
@@ -338,7 +338,7 @@ button:disabled {
     }
 
     .md-bottom {
-        bottom: -62px;
+        bottom: -42px;
         left: 0;
         width: 100%;
         display: flex;
@@ -346,8 +346,8 @@ button:disabled {
     }
 
     .md-bottom img {
-        width: 360px;
-        max-width: 96%;
+        width: 260px;
+        max-width: 82%;
         padding: 0 10px;
     }
 }
