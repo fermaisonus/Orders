@@ -98,3 +98,359 @@ function getFulfillmentNote() {
 function buildPaymentConfig(paymentMethod, total, orderNumber) {
     const amount = Number(total || 0).toFixed(2);
     const note = `Fermaison order ${orderNumber}`;
+    const encodedNote = encodeURIComponent(note);
+
+    const configs = {
+        'cash app': {
+            deepLink: `cashapp://pay?cashtag=fermaison&amount=${amount}&note=${encodedNote}`,
+            webLink: `https://cash.app/$fermaison/${amount}`,
+            supportsPrefill: true
+        },
+        venmo: {
+            deepLink: `venmo://paycharge?txn=pay&recipients=fermaison&amount=${amount}&note=${encodedNote}`,
+            webLink: `https://venmo.com/fermaison?txn=pay&amount=${amount}&note=${encodedNote}`,
+            supportsPrefill: true
+        },
+        'apple pay': {
+            deepLink: '',
+            webLink: '',
+            supportsPrefill: false
+        },
+        zelle: {
+            deepLink: '',
+            webLink: '',
+            supportsPrefill: false
+        }
+    };
+
+    return configs[paymentMethod] || { deepLink: '', webLink: '', supportsPrefill: false };
+}
+
+function buildSmsLink(paymentMethod, handle, amount, orderNumber) {
+    const body = encodeURIComponent(
+        `Hi, I placed Fermaison order ${orderNumber}. Paying $${amount} via ${paymentMethod} to ${handle}.`
+    );
+    return `sms:?&body=${body}`;
+}
+
+function launchPayment(deepLink, webLink) {
+    if (!deepLink && !webLink) return;
+    if (deepLink) {
+        window.location.href = deepLink;
+        if (webLink) {
+            setTimeout(() => {
+                window.location.href = webLink;
+            }, 1200);
+        }
+        return;
+    }
+    window.location.href = webLink;
+}
+
+function normalizeMenuItem(item) {
+    const rawSection = String(item.section || 'regular').trim().toLowerCase();
+    const compactSection = rawSection.replace(/['’_\-\s]/g, '');
+    const nameKey = String(item.name || '').trim().toLowerCase();
+    const isMothersDayItem = MOTHERS_DAY_ITEM_KEYS.includes(nameKey);
+    const section = compactSection.includes('mother') || isMothersDayItem
+        ? 'mothers-day'
+        : rawSection;
+
+    return {
+        name: String(item.name || '').trim(),
+        description: String(item.description || '').trim(),
+        price: Number(item.price || 0),
+        section,
+        active: item.active !== false
+    };
+}
+
+function buildMenuItem(item) {
+    const div = document.createElement('div');
+    div.classList.add('menu-item');
+    div.innerHTML = `
+        <div class="menu-item-info">
+            <label class="menu-item-title">${item.name.toLowerCase()} ($${item.price})</label>
+            ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
+        </div>
+        <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${item.name.toLowerCase()}">
+    `;
+    return div;
+}
+
+function renderMenu(menu) {
+    const normalizedMenu = menu.map(normalizeMenuItem).filter(item => item.name && item.active);
+    const mothersDayActive = isMothersDayActive();
+    const regularMenu = normalizedMenu.filter(item => item.section === 'regular');
+    const mothersDayMenu = mothersDayActive
+        ? normalizedMenu.filter(item => item.section === 'mothers-day')
+        : [];
+
+    menuContainer.innerHTML = '';
+    if (mothersDayContainer) mothersDayContainer.innerHTML = '';
+
+    regularMenu.forEach(item => {
+        menuContainer.appendChild(buildMenuItem(item));
+    });
+
+    if (!regularMenu.length) {
+        menuContainer.textContent = 'menu is currently unavailable.';
+    }
+
+    if (mothersDayContainer) {
+        mothersDayMenu.forEach(item => {
+            mothersDayContainer.appendChild(buildMenuItem(item));
+        });
+
+        if (mothersDayActive && !mothersDayMenu.length) {
+            mothersDayContainer.innerHTML = '<p class="menu-item-description">mother\'s day menu is loading.</p>';
+        }
+    }
+
+    if (mothersDaySection) {
+        mothersDaySection.style.display = mothersDayActive ? '' : 'none';
+    }
+
+    menuQtys = document.querySelectorAll('.menu-qty');
+    menuItemsNames = Array.from(menuQtys).map(q => q.dataset.name);
+    menuQtys.forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+
+    calculateTotal();
+}
+
+function getCachedMenu() {
+    try {
+        const raw = localStorage.getItem(MENU_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.menu || !Array.isArray(parsed.menu)) return null;
+        const isFresh = Date.now() - Number(parsed.savedAt || 0) < MENU_CACHE_TTL_MS;
+        return isFresh ? parsed.menu : null;
+    } catch (err) {
+        return null;
+    }
+}
+
+function setCachedMenu(menu) {
+    try {
+        localStorage.setItem(MENU_CACHE_KEY, JSON.stringify({
+            menu,
+            savedAt: Date.now()
+        }));
+    } catch (err) {
+        // Ignore storage failures.
+    }
+}
+
+async function loadMenu() {
+    const cachedMenu = getCachedMenu();
+    if (cachedMenu && cachedMenu.length) {
+        renderMenu(cachedMenu);
+    }
+
+    try {
+        const res = await fetch(WEB_APP_URL);
+        const menu = await res.json();
+        if (!Array.isArray(menu) || !menu.length) {
+            throw new Error('Invalid menu response');
+        }
+        renderMenu(menu);
+        setCachedMenu(menu);
+    } catch (err) {
+        console.error(err);
+        if (!cachedMenu) {
+            menuContainer.textContent = 'menu could not load.';
+            if (mothersDayContainer && isMothersDayActive()) {
+                mothersDayContainer.innerHTML = '<p class="menu-item-description">mother\'s day menu could not load.</p>';
+            }
+        }
+    }
+}
+
+const phoneInput = document.getElementById('phone');
+phoneInput.addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
+});
+
+breadForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+    if (isSubmitting) return;
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const email = document.getElementById('email');
+    const phone = document.getElementById('phone');
+
+    if (!email.checkValidity()) {
+        alert(email.title);
+        email.focus();
+        return;
+    }
+
+    if (!phone.checkValidity()) {
+        alert(phone.title);
+        phone.focus();
+        return;
+    }
+
+    const pickupRaw = document.getElementById('pickup').value;
+    const pickupDate = getNextPickupDate(pickupRaw);
+
+    const data = {
+        submissionId: buildSubmissionId(),
+        name: document.getElementById('name').value,
+        email: email.value,
+        phone: phone.value,
+        total: totalEl.textContent,
+        pickup: pickupRaw,
+        pickupDate,
+        pickupDisplay: `${pickupRaw} (${pickupDate})`,
+        fulfillmentNote: getFulfillmentNote(),
+        payment: document.querySelector('input[name="payment"]:checked')?.value,
+        allergies: document.getElementById('allergies').value,
+        requests: document.getElementById('requests').value,
+        newsletter: document.querySelector('input[name="newsletter"]:checked')?.value,
+        supperclub: document.querySelector('input[name="supperclub"]:checked')?.value,
+        feedback: document.getElementById('feedback').value
+    };
+
+    menuQtys.forEach((q, i) => {
+        data[menuItemsNames[i]] = parseInt(q.value, 10) || 0;
+    });
+
+    try {
+        setSubmitState(true, 'processing your order. please wait...');
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(data)
+        });
+
+        const raw = await res.text();
+        let result = {};
+        try {
+            result = JSON.parse(raw);
+        } catch (parseError) {
+            throw new Error('Invalid server response');
+        }
+        if (typeof result === 'string') {
+            result = JSON.parse(result);
+        }
+
+        const isSuccess = String(result.result || result.status || '').toLowerCase() === 'success';
+        const orderNumber =
+            result.orderNumber ||
+            result.ordernumber ||
+            result.order_number ||
+            result?.data?.orderNumber ||
+            result?.data?.ordernumber ||
+            result?.data?.order_number ||
+            (raw.match(/F-\d{4}-\d+/)?.[0]) ||
+            'pending';
+
+        const confirmedTotal = result.total || result?.data?.total || data.total;
+
+        if (isSuccess) {
+            const orderedItems = menuItemsNames
+                .filter(name => data[name] > 0)
+                .map(name => `${name} x${data[name]}`)
+                .join('<br>');
+
+            const paymentHandles = {
+                'apple pay': 'applepay@fermaison.us',
+                'cash app': '$fermaison',
+                venmo: '@fermaison',
+                zelle: 'fermaison@gmail.com'
+            };
+
+            const handle = paymentHandles[data.payment] || 'please follow the payment instructions';
+            const paymentConfig = buildPaymentConfig(data.payment, confirmedTotal, orderNumber);
+            const payButtonLabel = paymentConfig.supportsPrefill
+                ? `pay in ${data.payment}`
+                : 'pay manually';
+            const paymentNotice = paymentConfig.supportsPrefill
+                ? `opens ${data.payment} with amount and order note prefilled`
+                : data.payment === 'apple pay'
+                    ? 'opens messages with a prefilled payment text'
+                    : `${data.payment} cannot be prefilled from web. use the details below`;
+            const mainEl = document.querySelector('main');
+
+            mainEl.innerHTML = `
+            <div class="payment-card">
+                <h2>thank you</h2>
+                <p>
+                    <strong>order number:</strong>
+                    <span id="orderNumber">${orderNumber}</span>
+                    <button class="copy-btn" data-copy="orderNumber">copy</button>
+                </p>
+                <p><strong>items:</strong><br>${orderedItems || 'none'}</p>
+                <p><strong>total:</strong> $${confirmedTotal}</p>
+                <p><strong>pickup:</strong> ${data.pickupDisplay || data.pickup}</p>
+                <p><strong>schedule:</strong> ${data.fulfillmentNote}</p>
+                <hr>
+                <p>send <strong>$${confirmedTotal}</strong> via <strong>${data.payment}</strong></p>
+                <p>
+                    <strong id="paymentHandle">${handle}</strong>
+                    <button class="copy-btn" data-copy="paymentHandle">copy</button>
+                </p>
+                <button type="button" id="payNowBtn" class="pay-now-btn">${payButtonLabel}</button>
+                <p class="payment-note">${paymentNotice}</p>
+                <p>include your order number in the payment notes.</p>
+                <p>your order is confirmed once payment is received.</p>
+            </div>
+            `;
+
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.getAttribute('data-copy');
+                    const target = document.getElementById(targetId);
+
+                    if (target) {
+                        navigator.clipboard.writeText(target.textContent)
+                            .then(() => {
+                                btn.textContent = 'copied!';
+                                setTimeout(() => { btn.textContent = 'copy'; }, 1000);
+                            })
+                            .catch(() => alert('copy failed'));
+                    }
+                });
+            });
+
+            const payNowBtn = document.getElementById('payNowBtn');
+            if (payNowBtn) {
+                payNowBtn.addEventListener('click', () => {
+                    if (data.payment === 'apple pay') {
+                        const smsLink = buildSmsLink('apple pay', handle, confirmedTotal, orderNumber);
+                        window.location.href = smsLink;
+                        return;
+                    }
+                    if (!paymentConfig.deepLink && !paymentConfig.webLink) {
+                        alert('Please pay manually using the handle and include your order number in the note.');
+                        return;
+                    }
+                    launchPayment(paymentConfig.deepLink, paymentConfig.webLink);
+                });
+            }
+        } else {
+            setSubmitState(false, '');
+            alert('error submitting order: ' + (result.message || raw));
+        }
+    } catch (err) {
+        setSubmitState(false, '');
+        alert('error submitting order: ' + err.message);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!isMothersDayActive() && mothersDaySection) {
+        mothersDaySection.style.display = 'none';
+    }
+
+    loadMenu();
+});
