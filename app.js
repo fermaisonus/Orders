@@ -1,5 +1,5 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxAhByd30dfj83zNLLl-KBvHNuYn4ksaVCzWMBHsf6gTnV5Aaf86yP6IJyhUg4YSm3v/exec';
-const MENU_CACHE_KEY = 'fermaison_menu_cache_v3';
+const MENU_CACHE_KEY = 'fermaison_menu_cache_v4';
 const MENU_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const MOTHERS_DAY_END = new Date('2026-05-07T23:59:59-04:00');
@@ -18,6 +18,15 @@ let menuItemsNames = [];
 let isSubmitting = false;
 
 const MOTHERS_DAY_ITEM_KEYS = ['maman', 'mom', 'mama', 'mamã'];
+
+function slugifyItemName(name) {
+    return String(name || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
 
 function isMothersDayActive() {
     return new Date() <= MOTHERS_DAY_END;
@@ -168,12 +177,13 @@ function normalizeMenuItem(item) {
 function buildMenuItem(item) {
     const div = document.createElement('div');
     div.classList.add('menu-item');
+    const itemKey = slugifyItemName(item.name);
     div.innerHTML = `
         <div class="menu-item-info">
             <label class="menu-item-title">${item.name.toLowerCase()} ($${item.price})</label>
             ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
         </div>
-        <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${item.name.toLowerCase()}">
+        <input type="number" class="menu-qty" value="0" min="0" data-price="${item.price}" data-name="${itemKey}" data-label="${item.name.toLowerCase()}">
     `;
     return div;
 }
@@ -320,8 +330,17 @@ breadForm.addEventListener('submit', async e => {
         feedback: document.getElementById('feedback').value
     };
 
+    data.items = [];
     menuQtys.forEach((q, i) => {
-        data[menuItemsNames[i]] = parseInt(q.value, 10) || 0;
+        const qty = parseInt(q.value, 10) || 0;
+        const item = {
+            key: menuItemsNames[i],
+            name: q.dataset.label || menuItemsNames[i],
+            qty,
+            price: parseFloat(q.dataset.price || '0') || 0
+        };
+        data[menuItemsNames[i]] = qty;
+        data.items.push(item);
     });
 
     try {
@@ -354,12 +373,17 @@ breadForm.addEventListener('submit', async e => {
             (raw.match(/F-\d{4}-\d+/)?.[0]) ||
             'pending';
 
-        const confirmedTotal = result.total || result?.data?.total || data.total;
+        const serverTotal = result.total || result?.data?.total;
+        const clientTotalNumber = Number(data.total || 0);
+        const serverTotalNumber = Number(serverTotal || 0);
+        const confirmedTotal = serverTotalNumber >= clientTotalNumber
+            ? serverTotalNumber.toFixed(2)
+            : clientTotalNumber.toFixed(2);
 
         if (isSuccess) {
-            const orderedItems = menuItemsNames
-                .filter(name => data[name] > 0)
-                .map(name => `${name} x${data[name]}`)
+            const orderedItems = data.items
+                .filter(item => item.qty > 0)
+                .map(item => `${item.name} x${item.qty}`)
                 .join('<br>');
 
             const paymentHandles = {
