@@ -1,5 +1,5 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxAhByd30dfj83zNLLl-KBvHNuYn4ksaVCzWMBHsf6gTnV5Aaf86yP6IJyhUg4YSm3v/exec';
-const MENU_CACHE_KEY = 'fermaison_menu_cache_v6';
+const MENU_CACHE_KEY = 'fermaison_menu_cache_v7';
 const MENU_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const MOTHERS_DAY_END = new Date('2026-05-07T23:59:59-04:00');
